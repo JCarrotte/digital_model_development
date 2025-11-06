@@ -1,6 +1,5 @@
 #import
 import numpy as np
-import sys 
 from scipy.interpolate import CubicSpline
 from lmfit import minimize, Minimizer, Parameters, report_fit
 import matplotlib.pyplot as plt
