@@ -136,3 +136,73 @@ def residual(params, x_grid, CD_diff, Te_data, ne_data, zeta, dA, dV):
     model = Profile_from_gaussians(x_grid, params, Te_data, ne_data, zeta, dA, dV)
 
     return model - CD_diff 
+
+#paramaters 
+#filepaths
+base_directory = Path(__file__).parent
+Te_file = base_directory.joinpath("T_analytic.txt")
+ne_file = base_directory.joinpath("n_analytic.txt")
+
+#rho_grid
+rho = np.linspace(0,1,101)
+
+#load in data files
+Te_profile = np.loadtxt(Te_file, delimiter=",")
+ne_profile = np.loadtxt(ne_file, delimiter=',')
+
+#create perturbed plasma profiles
+#perturbation = np.cos(Te_profile[:,0]*3) * 5
+perturbation = np.ones(len(Te_profile[:,0]))*5
+Te_perturbed = perturb_plasma_profile(Te_profile, perturbation)
+ne_perturbed = perturb_plasma_profile(ne_profile, perturbation*0)
+
+#Create and populate parameter space
+fit_params = Parameters()
+fit_params.add('power_1', value=0.1, min = 0.0)
+fit_params.add('power_2', value=0.1, min = 0.0)
+fit_params.add('power_3', value=0.1, min = 0.0)
+fit_params.add('power_4', value=0.1, min = 0.0)
+fit_params.add('power_5', value=0.1, min = 0.0)
+fit_params.add('width_1', value=0.2, vary=False)
+fit_params.add('width_2', value=0.2, vary=False)
+fit_params.add('width_3', value=0.2, vary=False)
+fit_params.add('width_4', value=0.2, vary=False)
+fit_params.add('width_5', value=0.2, vary=False)
+fit_params.add('centre_1', value=0.0, vary=False) #min=(0.1-0.01), max=(0.1+0.01))
+fit_params.add('centre_2', value=0.2, vary=False) #min=(0.3-0.01), max=(0.3+0.01))
+fit_params.add('centre_3', value=0.4, vary=False) #min=(0.5-0.01), max=(0.5+0.01))
+fit_params.add('centre_4', value=0.6, vary=False) #min=(0.7-0.01), max=(0.7+0.01))
+fit_params.add('centre_5', value=0.8, vary=False) #min=(0.9-0.01), max=(0.9+0.01))
+fit_params.add('alpha', value=0.0, vary=False)
+
+#create CD_data 
+#CD old data
+CD_old_coords = np.linspace(0.1, 1.0, 101)
+CD_old = 0.2*np.sin(CD_old_coords) + 5
+CD_old_data = np.empty((2, len(CD_old_coords)))
+CD_old_data[0,:] = CD_old_coords
+CD_old_data[1,:] = CD_old
+
+#CD new data
+CD_new_coords = np.linspace(0,1,101)
+#CD_new = 0.2*np.cos(4*CD_new_coords) + 20
+CD_new = CD_old + Gaussian_distribution(CD_old_coords, 2, 0.3, 0.4) + Gaussian_distribution(CD_old_coords, 3, 0.2, 0.8)
+CD_new_data = np.empty((2, len(CD_new_coords)))
+CD_new_data[0,:] = CD_new_coords
+CD_new_data[1,:] = CD_new
+
+#calculate difference in CD_profile for fitting
+CD_diff = Calculate_CD_diff(rho, CD_old_data, CD_new_data)
+
+CD_diff = np.append(CD_diff, 0)
+
+#Zeta array
+Zeta = np.ones(len(rho))
+
+#area and volume array
+R = 3 #m 
+r = np.linspace(0.1,1.5,101) #m
+dArea = np.pi * r*r #m^2
+dVolume = 2*np.pi * R * dArea #m^3 
+#dArea   = np.ones(len(rho))
+#dVolume = np.ones(len(rho))
