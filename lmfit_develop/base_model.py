@@ -206,3 +206,46 @@ dArea = np.pi * r*r #m^2
 dVolume = 2*np.pi * R * dArea #m^3 
 #dArea   = np.ones(len(rho))
 #dVolume = np.ones(len(rho))
+
+def main():
+#Do fit
+    min = Minimizer(residual, fit_params, fcn_args=(rho, CD_diff, Te_profile, ne_profile, Zeta, dArea, dVolume))
+    minResult = min.minimize()
+
+    fit_gaussian = Profile_from_gaussians(rho, minResult.params, Te_profile, ne_profile, Zeta, dArea, dVolume)
+
+    report_fit(minResult)
+
+    #second_fit
+    pert_min = Minimizer(residual, fit_params, fcn_args=(rho, CD_diff, Te_perturbed, ne_profile, Zeta, dArea, dVolume))
+    pertResult = pert_min.minimize()
+
+    pert_gaussian = Profile_from_gaussians(rho, pertResult.params, Te_perturbed, ne_perturbed, Zeta, dArea, dVolume)
+
+    report_fit(pertResult)
+
+    print(CD_diff[-1], fit_gaussian[-1])
+
+    fig, ax_CD = plt.subplots()
+    fig, (ax_te, ax_ne) = plt.subplots(1,2, layout='constrained')
+    ax_CD.set_xlabel(r'Rho ($\rho_t$)')
+    ax_CD.set_ylabel('Current (Arb units)')
+    ax_te.set_xlabel(r'Rho ($\rho_t$)')
+    ax_ne.set_xlabel(r'Rho ($\rho_t$)')
+    ax_te.set_ylabel(r'Temperature ($K$)')
+    ax_ne.set_ylabel(r'Density ($10^{19} m^{-3}$)')
+
+    ax_CD.plot(rho, CD_diff[:-1], '+-', alpha = 0.5)
+    ax_CD.plot(rho, fit_gaussian[:-1], 'rx--', label='Unperturbed profiles')
+    ax_CD.plot(rho, pert_gaussian[:-1], 'g+--',label='Perturbed profiles')
+    ax_CD.legend()
+
+    ax_te.plot(Te_profile[:,0], Te_profile[:,1], 'rx--', label='Unperturbed profiles')
+    ax_te.plot(Te_perturbed[:,0], Te_perturbed[:,1], 'gx--', label='Perturbed profiles', alpha=0.5)
+    ax_ne.plot(ne_profile[:,0], ne_profile[:,1], 'rx--')
+    ax_ne.plot(ne_perturbed[:,0], ne_perturbed[:,1], 'g+--', alpha =0.5)
+
+    plt.show()
+
+if __name__ == "__main__":
+    main()
