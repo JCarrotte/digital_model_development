@@ -137,6 +137,24 @@ def residual(params, x_grid, CD_diff, Te_data, ne_data, zeta, dA, dV):
 
     return model - CD_diff 
 
+def perturb_plasma_profile(profile_data, perturbation):
+    """
+    Takes a plasma profile and adds a perturbation to it
+    requires perturbation to be the same length as the profile
+    """
+
+    profile = profile_data[:,1]
+    try:
+        perturbed_profile = profile + perturbation
+        perturbed_data = np.empty(np.shape(profile_data))
+        perturbed_data[:,0] = profile_data[:,0]
+        perturbed_data[:,1] = perturbed_profile
+        return perturbed_data
+
+    except Exception as e:
+        print(f"unable to add perturbation! {e} \nReturning original profile")
+        return(profile_data)
+
 #paramaters 
 #filepaths
 base_directory = Path(__file__).parent
