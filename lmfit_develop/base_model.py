@@ -100,3 +100,39 @@ def Profile_from_gaussians(x_grid, params, Te_data, ne_data, zeta, area_element,
     #Product_of_amplitude = np.prod(np.abs(amps))
 
     return Total_profile
+
+def calculate_eta(Te_2,ne_2):
+    """
+    Calculates eta from relative changes in ne and te
+
+    eta_1/eta_2 = (Te_1/Te_2)*(ne_2/ne_1)
+    """
+
+    eta_1   = 20 * 10**-3 #A/W
+    Te_1    = 10          #Kev
+    ne_1    = 10          #10^19 m^-3
+
+    eta_2 = eta_1 * (Te_2/Te_1) * (ne_1/ne_2)
+
+    return eta_2
+
+def Calculate_CD_diff(x_grid, old_CD_data, new_CD_data):
+    #creates interpolators for old and new data
+    old_CD_rho = old_CD_data[0,:]
+    old_CD_profile = old_CD_data[1,:]
+    CD_old_interp = CubicSpline(old_CD_rho, old_CD_profile)
+    CD_new_interp = CubicSpline(new_CD_data[0,:], new_CD_data[1,:])
+
+    #Interpolate grid for CD calculation
+    old_CD = CD_old_interp(x_grid)
+    new_CD = CD_new_interp(x_grid)
+    
+    CD_diff = new_CD - old_CD
+
+    return CD_diff
+
+def residual(params, x_grid, CD_diff, Te_data, ne_data, zeta, dA, dV):
+    #pass parameters to model
+    model = Profile_from_gaussians(x_grid, params, Te_data, ne_data, zeta, dA, dV)
+
+    return model - CD_diff 
