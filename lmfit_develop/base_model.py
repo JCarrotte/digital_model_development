@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 # functions
-def Gaussian_distribution(x_grid, a, b, c):
+def gaussian_distribution(x_grid, a, b, c):
     """
     Creates a gaussian distribution for a given ABC on a grid of x points
     a: amplitutde
@@ -21,7 +21,7 @@ def Gaussian_distribution(x_grid, a, b, c):
     return gauss_y
 
 
-def Profile_from_gaussians(
+def profile_from_gaussians(
     x_grid, params, Te_data, ne_data, zeta, area_element, vol_element
 ):
     """ "
@@ -85,11 +85,11 @@ def Profile_from_gaussians(
     a_4 = (pow_4 / vol_element[index_4]) * eta_4 * zeta[index_4] * area_element[index_4]
     a_5 = (pow_5 / vol_element[index_5]) * eta_5 * zeta[index_5] * area_element[index_5]
 
-    gauss_1 = Gaussian_distribution(x_grid, a_1, b_1, c_1)
-    gauss_2 = Gaussian_distribution(x_grid, a_2, b_2, c_2)
-    gauss_3 = Gaussian_distribution(x_grid, a_3, b_3, c_3)
-    gauss_4 = Gaussian_distribution(x_grid, a_4, b_4, c_4)
-    gauss_5 = Gaussian_distribution(x_grid, a_5, b_5, c_5)
+    gauss_1 = gaussian_distribution(x_grid, a_1, b_1, c_1)
+    gauss_2 = gaussian_distribution(x_grid, a_2, b_2, c_2)
+    gauss_3 = gaussian_distribution(x_grid, a_3, b_3, c_3)
+    gauss_4 = gaussian_distribution(x_grid, a_4, b_4, c_4)
+    gauss_5 = gaussian_distribution(x_grid, a_5, b_5, c_5)
 
     gauss_1 = np.append(gauss_1, np.abs(pow_1) * alpha)
     gauss_2 = np.append(gauss_2, np.abs(pow_2) * alpha)
@@ -139,7 +139,7 @@ def Calculate_CD_diff(x_grid, old_CD_data, new_CD_data):
 
 def residual(params, x_grid, CD_diff, Te_data, ne_data, zeta, dA, dV):
     # pass parameters to model
-    model = Profile_from_gaussians(x_grid, params, Te_data, ne_data, zeta, dA, dV)
+    model = profile_from_gaussians(x_grid, params, Te_data, ne_data, zeta, dA, dV)
 
     return model - CD_diff
 
@@ -196,8 +196,8 @@ CD_new_coords = np.linspace(0, 1, 101)
 # CD_new = 0.2*np.cos(4*CD_new_coords) + 20
 CD_new = (
     CD_old
-    + Gaussian_distribution(CD_old_coords, 2, 0.3, 0.4)
-    + Gaussian_distribution(CD_old_coords, 3, 0.2, 0.8)
+    + gaussian_distribution(CD_old_coords, 2, 0.3, 0.4)
+    + gaussian_distribution(CD_old_coords, 3, 0.2, 0.8)
 )
 CD_new_data = np.empty((2, len(CD_new_coords)))
 CD_new_data[0, :] = CD_new_coords
@@ -247,7 +247,7 @@ def main():
     )
     minResult = min.minimize()
 
-    fit_gaussian = Profile_from_gaussians(
+    fit_gaussian = profile_from_gaussians(
         rho, minResult.params, Te_profile, ne_profile, Zeta, dArea, dVolume
     )
 
@@ -261,7 +261,7 @@ def main():
     )
     pertResult = pert_min.minimize()
 
-    pert_gaussian = Profile_from_gaussians(
+    pert_gaussian = profile_from_gaussians(
         rho, pertResult.params, Te_perturbed, ne_perturbed, Zeta, dArea, dVolume
     )
 
