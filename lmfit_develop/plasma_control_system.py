@@ -2,7 +2,7 @@
 from scipy.interpolate import CubicSpline
 
 
-def plasma_control_system(x_grid, old_CD_data, recipe_CD_data, bootstrap_data):
+def plasma_control_system_diff_rho(x_grid, old_CD_data, recipe_CD_data, bootstrap_data):
     """
     Takes the Current Drive (CD) profiles from the Beam-to-Plasma
     and plasma recipe and calculates the required increase in current.
@@ -22,5 +22,21 @@ def plasma_control_system(x_grid, old_CD_data, recipe_CD_data, bootstrap_data):
     bs_CD = bootstrap_interp(x_grid)
 
     CD_diff = recipe_CD - old_CD - bs_CD
+
+    return CD_diff
+
+
+def plasma_control_system(
+    x_grid, old_CD_profile, recipe_CD_profile, bootstrap_CD_profile
+):
+    """
+    Takes the Current Drive (CD) profiles from the Beam-to-Plasma
+    and plasma recipe and calculates the required increase in current.
+    Assumes all profiles are defined on the same grid
+
+    Also takes into account the bootstrap current
+    """
+
+    CD_diff = recipe_CD_profile - old_CD_profile - bootstrap_CD_profile
 
     return CD_diff
