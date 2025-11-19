@@ -26,9 +26,7 @@ def plasma_control_system_diff_rho(x_grid, old_CD_data, recipe_CD_data, bootstra
     return CD_diff
 
 
-def plasma_control_system(
-    x_grid, old_CD_profile, recipe_CD_profile, bootstrap_CD_profile
-):
+def plasma_control_system(old_CD_profile, recipe_CD_profile, bootstrap_CD_profile):
     """
     Takes the Current Drive (CD) profiles from the Beam-to-Plasma
     and plasma recipe and calculates the required increase in current.
