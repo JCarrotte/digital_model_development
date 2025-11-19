@@ -4,15 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 import os
+import random
 
 from HCD_controller import gaussian_distribution
 
 
-def simple_profile_perturbation(plasma_profile, perturbation):
+def simple_profile_perturbation(x_grid, plasma_profile, m, a, b):
     """
-    Adds perturbation to plasma profile
-    assumes both arrays are defined on the same rho grid
+    Adds simple perturbation to plasma profile
+    perturbation is sum of staright line, a sine wave and a constant
     """
+
+    # perturbation
+    perturbation = m*x_grid + a/4 * np.sin(2*x_grid) + b
 
     perturbed_profile = plasma_profile + perturbation
 
@@ -114,13 +118,74 @@ def reference_generator(
 
     volume_evolution = profile_extension(n_ramp, n_flat_top, plasma_volume_profile)
 
-    return (
+    evolution_tuple = [
         ne_evolution,
         Te_evolution,
         plasma_current_evolution,
         bootstrap_evolution,
         area_evolution,
         volume_evolution,
+    ]
+
+    # create arrays of perturbed quantities
+    ne_perturbed = np.empty(np.shape(ne_evolution))
+    Te_perturbed = np.empty(np.shape(ne_evolution))
+    pc_perturbed = np.empty(np.shape(ne_evolution))
+    bs_perturbed = np.empty(np.shape(ne_evolution))
+
+    for i in range(np.shape(ne_evolution)[0]):
+        rand_ne_m = random.randint(-200, 0) / 100
+        rand_ne_a = random.randint(-200, 200) / 100
+        rand_ne_b = random.randint(0, 100) / 100
+
+        rand_Te_m = random.randint(-200, 0) / 100
+        rand_Te_a = random.randint(-200, 200) / 100
+        rand_Te_b = random.randint(0, 100) / 100
+
+        ne_perturbed[i, :] = simple_profile_perturbation(
+            rho_grid,
+            ne_evolution[i, :],
+            rand_ne_m,
+            rand_ne_a,
+            rand_ne_b,
+            )
+        
+        Te_perturbed[i, :] = simple_profile_perturbation(
+            rho_grid,
+            Te_evolution[i, :],
+            rand_Te_m,
+            rand_Te_a,
+            rand_Te_b
+        )
+
+        amplitude_pc_1 = random.randint(0, 50) / 100
+        amplitude_pc_2 = random.randint(-50, 50) / 100
+        amplitude_pc_3 = random.randint(-50, 50) / 100
+
+        amplitude_bs_1 = random.randint(0, 50) / 100
+        amplitude_bs_2 = random.randint(-50, 50) / 100
+        amplitude_bs_3 = random.randint(-50, 50) / 100
+
+        pc_perturbed[i, :] = gaussian_perturbation(
+            rho_grid,
+            plasma_current_evolution[i, :],
+            amplitude_pc_1,
+            amplitude_pc_2,
+            amplitude_pc_3,
+        )
+        bs_perturbed[i, :] = gaussian_perturbation(
+            rho_grid,
+            bootstrap_evolution[i, :],
+            amplitude_bs_1,
+            amplitude_bs_2,
+            amplitude_bs_3,
+        )
+
+    perturbed_tuple = [ne_perturbed, Te_perturbed, pc_perturbed, bs_perturbed]
+
+    return (
+        evolution_tuple,
+        perturbed_tuple,
     )
 
 
