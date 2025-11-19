@@ -5,7 +5,38 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import os
 
-from base_model import gaussian_distribution
+from HCD_controller import gaussian_distribution
+
+
+def simple_profile_perturbation(plasma_profile, perturbation):
+    """
+    Adds perturbation to plasma profile
+    assumes both arrays are defined on the same rho grid
+    """
+
+    perturbed_profile = plasma_profile + perturbation
+
+    return perturbed_profile
+
+
+def gaussian_perturbation(
+    x_grid, plasma_profile, amplitude_1, amplitude_2, amplitude_3
+):
+    """
+    A more complicated and prescriptive perturbation function
+    """
+    # create gaussian profiles
+    gauss_1 = gaussian_distribution(x_grid, amplitude_1, 0.2, 0.2)
+    gauss_2 = gaussian_distribution(x_grid, amplitude_2, 0.2, 0.5)
+    gauss_3 = gaussian_distribution(x_grid, amplitude_3, 0.2, 0.8)
+
+    # sum gaussian profiles
+    total_perturbation = gauss_1 + gauss_2 + gauss_3
+
+    # add perturbation to profile
+    perturbed_profile = plasma_profile + total_perturbation
+
+    return perturbed_profile
 
 
 def profile_extension(n_ramp: int, n_flat_top: int, plasma_profile):
@@ -110,6 +141,11 @@ def test():
         ax.plot(x + shift, test_evol[i, :])
 
     ax.set_xlim(0, 1)
+    plt.show()
+
+    empty = np.zeros(len(x))
+    perturbed = gaussian_perturbation(x, empty, 0.005, 0.01, 0.01)
+    plt.plot(x, perturbed)
     plt.show()
 
 
